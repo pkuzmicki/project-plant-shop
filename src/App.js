@@ -4,24 +4,26 @@ import { ReactComponent as PlantLogo } from './icons/plant.svg';
 import { ReactComponent as CartAdd } from './icons/cartAdd.svg'
 import { ReactComponent as CartRm } from './icons/cartRm.svg'
 
-import monstera from './monstera_deliciosa.png';
-import { useState } from 'react';
+import { useEffect, useState, userEffect } from 'react';
 
 const listOfProducts = [
-  {name: "Monstera deliciosa", price: 100, img: monstera},
-  {name: "Ficus benjamina", price: 100, img: monstera},
-  {name: "Lavandula angustifolia", price: 100, img: monstera},
-  {name: "Aristolochia grandiflora", price: 100, img: monstera},
-  {name: "Serrulatocaulis polymorphus", price: 100, img: monstera}
+  {name: "Monstera deliciosa", price: 100, img: "https://drive.google.com/thumbnail?id=1m_OtY8vDV3xvBC4bOGnBdZ717ZOWD8Nx"},
+  {name: "Monstera deliciosa", price: 100, img: "https://drive.google.com/thumbnail?id=1m_OtY8vDV3xvBC4bOGnBdZ717ZOWD8Nx"},
+  {name: "Lavandula angustifolia", price: 100, img: "https://drive.google.com/thumbnail?id=1f-2xe-4sm2OQTRmk4dg8X17nERuaekLh"},
+  {name: "Monstera deliciosa", price: 100, img: "https://drive.google.com/thumbnail?id=1m_OtY8vDV3xvBC4bOGnBdZ717ZOWD8Nx"},
+  {name: "Monstera deliciosa", price: 100, img: "https://drive.google.com/thumbnail?id=1m_OtY8vDV3xvBC4bOGnBdZ717ZOWD8Nx"},
+  {name: "Euphorbia tithymaloides", price: 66.66, img: "https://drive.google.com/thumbnail?id=1FmIImcblmr71b8RdvfZXa5Sr7OuOr5TU"}
 ];
 
 function Product({name, price, img, addToCart}) {
+  console.log(img);
+
   return (
     <div className='product'>
       <div className='product-background'/> 
       <div className='cart-add-animation'>
         <CartAdd className='cart-add' onClick={() => addToCart(name, price, img)}/>
-        <img src={img} className="product-img" alt="Product"/>
+        <img src={img} className="product-img" alt="Plant"/>
       </div>
       <div className="product-name"> {name} </div>
       <div className="product-price"> {price} PLN</div>
@@ -31,13 +33,13 @@ function Product({name, price, img, addToCart}) {
 
 
 
-function CartProduct({name, price, img, amount}) {
+function CartProduct({name, price, img, amount, removeFromCart}) {
   return (
     <div className='cart-product'>
       <img src={img} className="cart-product-img" alt={name}/>
       <div className="cart-product-price"> {price} </div>
       <div className='cart-amount-manager'>
-        <CartRm className='cart-rm'/>
+        <CartRm className='cart-rm' onClick={() => removeFromCart(name)}/>
         <div className="cart-product-amount"> {amount} </div>
       </div>
       
@@ -79,7 +81,7 @@ function BottomBar() {
   )
 }
 
-function Cart({productsInCart}) {
+function Cart({productsInCart, removeFromCart}) {
   return (
     <div className='checkout'>
         <div className="cart">
@@ -91,6 +93,7 @@ function Cart({productsInCart}) {
               price={product.price}
               img={product.img}
               amount={product.amount}
+              removeFromCart={removeFromCart}
             />
           ))}
         </div>
@@ -101,42 +104,56 @@ function Cart({productsInCart}) {
   )
 }
 
-function Products({productsInCart, addToCart}) {
+function ProductList({addToCart}) {
   return (
     <div>
         <h1 className='products-h'>Wszystkie Rośliny </h1>
         <div className='products'>
-          {listOfProducts.map(product => (
+          {listOfProducts.map(product => 
             <Product
-              name={product.name}
-              price={product.price}
-              img={product.img}
-              productsInCart={listOfProducts}
-              addToCart={addToCart}
+              name = {product.name}
+              price = {product.price}
+              img = {product.img}
+              addToCart = {addToCart}
             />
-          ))}
+          )}
         </div>
         
     </div>
   )
 }
 
-export default function Shop() {
-  const [productsInCart, add, remove] = useState([]);
 
-  function removeFromCart(name) {
-    
-  }
+export default function Shop() {
+  const [productsInCart, update] = useState([]);
+
+  // useEffect(() => {
+  //   fetch('')
+  // })
 
   function addToCart(name, price, img) {
-      add(item =>[...item, {name, price, img, amount: 1}]);
+    const product = productsInCart.find(item => item.name == name)
+    if (product) {
+      update(item => item.map(item => item.name == name ? {...item, amount : product.amount + 1} : item))
+    } else {
+      update(item =>[...item, {name, price, img, amount: 1}])
+    }
+  }
+
+  function removeFromCart(name) {
+    const product = productsInCart.find(item => item.name == name)
+    if (product.amount > 1) {
+      update(item => item.map(item => item.name == name ? {...item, amount : product.amount - 1} : item))
+    } else {
+      update(list => list.filter(item => item.name !== name))
+    }
   }
 
   return (
     <div className='body'>
       <Menu />
-      <Cart productsInCart={productsInCart}/>
-      <Products productsInCart={productsInCart} addToCart={addToCart}/> 
+      <Cart productsInCart={productsInCart} removeFromCart={removeFromCart}/>
+      <ProductList addToCart={addToCart}/> 
       <BottomBar />
     </div>
   )
